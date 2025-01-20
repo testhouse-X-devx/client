@@ -1,7 +1,7 @@
 // Plans.jsx
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import axios from "axios";
 
 const Plans = () => {
   const [plans, setPlans] = useState([]);
@@ -13,12 +13,13 @@ const Plans = () => {
   useEffect(() => {
     const fetchCountry = async () => {
       try {
-        const response = await axios.get('https://ipapi.co/json/');
+        const response = await axios.get("https://ipapi.co/json/");
         const country = response.data.country_code;
+        console.log("country", country);
         setCountryCode(country);
       } catch (err) {
-        console.error('Error detecting country:', err);
-        setCountryCode('US');
+        console.error("Error detecting country:", err);
+        setCountryCode("US");
       }
     };
 
@@ -28,9 +29,11 @@ const Plans = () => {
   useEffect(() => {
     const fetchPlans = async () => {
       if (!countryCode) return;
-
+      console.log("countryCode", countryCode);
       try {
-        const response = await axios.get(`http://127.0.0.1:5000/api/products/${countryCode}`);
+        const response = await axios.get(
+          `http://127.0.0.1:5000/api/products/${countryCode}`
+        );
         setPlans(response.data.products);
         setLoading(false);
       } catch (err) {
@@ -53,7 +56,9 @@ const Plans = () => {
     <div className="plans-page">
       <div className="plans-header">
         <h1>Choose Your Plan</h1>
-        <p className="header-description">Select the perfect plan for your needs</p>
+        <p className="header-description">
+          Select the perfect plan for your needs
+        </p>
         {countryCode && (
           <div className="location-badge">
             <span className="location-icon">📍</span>
@@ -69,17 +74,23 @@ const Plans = () => {
               <h2>{plan.name}</h2>
               <div className="plan-divider"></div>
             </div>
-            
+
             {plan.prices.map((price) => (
               <div key={price.price_id} className="plan-content">
                 <div className="price-tag">
-                  <span className="currency">{price.currency}</span>
-                  <span className="amount">{price.amount}</span>
+                  <span className="currency">{price.converted_currency}</span>
+                  <span className="amount">{price.converted_amount}</span>
                   <span className="interval">per {price.interval}</span>
                 </div>
-                
+
+                {/* Also show original price for reference */}
+                <div className="original-price">
+                  Original price: {price.original_currency}{" "}
+                  {price.original_amount}
+                </div>
+
                 <p className="plan-description">{plan.description}</p>
-                
+
                 <button
                   onClick={() => handleSubscribe(price.price_id)}
                   className="subscribe-button"
