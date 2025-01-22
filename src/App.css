@@ -3,6 +3,7 @@
   margin: 0;
   padding: 0;
   box-sizing: border-box;
+  width: 100%;
 }
 
 .app {
@@ -692,6 +693,241 @@
   color: #666;
 }
 
-/* Keep your existing styles for Plans and Checkout components */
 
-/* Rest of your existing checkout styles */
+/* Add these to your existing App.css */
+
+.duration-selector {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.duration-dropdown {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 0.8rem 1.5rem;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+}
+
+.duration-dropdown:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.duration-dropdown:focus {
+  outline: none;
+  border-color: #4facfe;
+}
+
+.duration-dropdown option {
+  background: #2d3436;
+  color: white;
+}
+
+.section-header {
+  text-align: center;
+  margin: 4rem 0 2rem 0;
+}
+
+.section-header h2 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.top-up-header {
+  margin-top: 6rem;
+}
+
+.top-up-card {
+  background: rgba(79, 172, 254, 0.1);
+  border: 1px solid rgba(79, 172, 254, 0.2);
+}
+
+.top-up-button {
+  background: linear-gradient(45deg, #00f2fe 0%, #4facfe 100%);
+}
+
+.top-up-card .price-tag .amount {
+  color: #00f2fe;
+}
+
+/* Add or update these styles in your App.css */
+
+.plans-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #2d3436 100%);
+  padding: 4rem 1rem;
+  color: #ffffff;
+}
+
+.plans-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 1rem;
+}
+
+.plans-header {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.plans-header h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.header-description {
+  font-size: 1.2rem;
+  color: #a0aec0;
+  margin-bottom: 2rem;
+}
+
+.duration-selector {
+  display: flex;
+  justify-content: center;
+  margin: 2rem 0;
+}
+
+.duration-dropdown {
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 20px;
+  padding: 0.8rem 1.5rem;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  min-width: 200px;
+  text-align: center;
+}
+
+.plans-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 320px));
+  gap: 2rem;
+  justify-content: center;
+  margin: 0 auto;
+}
+
+.plan-card {
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 20px;
+  padding: 2rem;
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  transition: transform 0.3s ease;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.plan-card-header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+.plan-divider {
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #4facfe, transparent);
+  margin: 1rem auto;
+  width: 50%;
+}
+
+.price-tag {
+  text-align: center;
+  margin: 2rem 0;
+}
+
+.currency {
+  font-size: 1.2rem;
+  color: #a0aec0;
+  text-transform: uppercase;
+  margin-right: 0.5rem;
+}
+
+.amount {
+  font-size: 3.5rem;
+  font-weight: 700;
+  color: #4facfe;
+}
+
+.interval {
+  display: block;
+  color: #a0aec0;
+  font-size: 1rem;
+  margin-top: 0.5rem;
+}
+
+.features-list {
+  margin: 2rem 0;
+}
+
+.feature-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  color: #cbd5e0;
+}
+
+.feature-icon {
+  color: #4facfe;
+  margin-right: 1rem;
+  font-size: 1.2rem;
+}
+
+.subscribe-button {
+  background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+  color: white;
+  border: none;
+  padding: 1rem 2rem;
+  border-radius: 30px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.2s ease;
+  margin-top: auto;
+}
+
+.subscribe-button:hover {
+  transform: translateY(-2px);
+}
+
+.section-header {
+  text-align: center;
+  margin: 6rem 0 3rem 0;
+}
+
+.section-header h2 {
+  font-size: 2rem;
+  color: white;
+  margin-bottom: 1rem;
+}
+
+.top-up-card {
+  background: rgba(79, 172, 254, 0.1);
+}
+
+.top-up-card .feature-icon {
+  font-size: 1.4rem;
+}
+
+@media (max-width: 768px) {
+  .plans-header h1 {
+    font-size: 2.5rem;
+  }
+  
+  .plans-grid {
+    grid-template-columns: minmax(280px, 1fr);
+    padding: 0 1rem;
+  }
+}
