@@ -10,6 +10,10 @@ const SubscriptionCheckout = () => {
   const [error, setError] = useState(null);
   const [countryCode, setCountryCode] = useState('GB');
 
+  //TODO:
+  //IF THE COUNTRY DETECTED IS NOT GB, THEN PASS ON THE COUNTRY CODE AS US.
+  
+
   // useEffect(() => {
   //   const fetchCountry = async () => {
   //     try {
