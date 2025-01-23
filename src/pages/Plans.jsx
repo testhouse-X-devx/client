@@ -9,22 +9,25 @@ const Plans = () => {
   const [error, setError] = useState(null);
   const [selectedDuration, setSelectedDuration] = useState("monthly");
   const navigate = useNavigate();
+  const [selectedCurrency, setSelectedCurrency] = useState("US");
+
+  // Currency dropdown
+  const currencyOptions = [
+    { value: "US", label: "USD" },
+    { value: "GB", label: "GBP" },
+  ];
 
   useEffect(() => {
     const fetchPlans = async () => {
       try {
         const [subscriptionResponse, topUpResponse] = await Promise.all([
-          // Fetch subscription plans
           axios.get(
-            `http://127.0.0.1:5000/api/products?plan_duration=${selectedDuration}&type=subscription_plan`
+            `http://127.0.0.1:5000/api/products?plan_duration=${selectedDuration}&type=subscription_plan&countryCode=${selectedCurrency}`
           ),
-          // Fetch top-up plans
-          axios.get(`http://127.0.0.1:5000/api/products?type=top_up_credits`),
+          axios.get(
+            `http://127.0.0.1:5000/api/products?type=top_up&countryCode=${selectedCurrency}`
+          ),
         ]);
-
-        console.log("Subscription Plans:", subscriptionResponse.data);
-        console.log("Top-up Plans:", topUpResponse.data);
-
         setSubscriptionPlans(subscriptionResponse.data.products || []);
         setTopUpPlans(topUpResponse.data.products || []);
         setLoading(false);
@@ -34,12 +37,12 @@ const Plans = () => {
         setLoading(false);
       }
     };
-
+  
     fetchPlans();
-  }, [selectedDuration]);
+  }, [selectedDuration, selectedCurrency]);  // Add selectedCurrency
 
-  const handleSubscribe = (priceId) => {
-    navigate(`/subscribe/${priceId}`);
+  const handleSubscribe = (planType,priceId) => {
+    navigate(`/subscribe/${planType}/${priceId}`);
   };
 
   if (loading) return <div className="loading-spinner">Loading plans...</div>;
@@ -51,19 +54,38 @@ const Plans = () => {
         {/* Header Section */}
         <div className="plans-header">
           <h1>Choose Your Plan</h1>
+          <div className="header-controls">
+            <select
+              value={selectedCurrency}
+              onChange={(e) => setSelectedCurrency(e.target.value)}
+              className="currency-select"
+            >
+              {currencyOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+          </div>
           <p className="header-description">
             Select the perfect plan for your needs
           </p>
 
-          <div className="duration-selector">
-            <select
-              value={selectedDuration}
-              onChange={(e) => setSelectedDuration(e.target.value)}
-              className="duration-dropdown"
-            >
-              <option value="monthly">Monthly Billing</option>
-              <option value="yearly">Annual Billing</option>
-            </select>
+          <div className="billing-toggle">
+            <span className="toggle-label">Monthly</span>
+            <label className="toggle-switch">
+              <input
+                type="checkbox"
+                checked={selectedDuration === "yearly"}
+                onChange={() =>
+                  setSelectedDuration(
+                    selectedDuration === "monthly" ? "yearly" : "monthly"
+                  )
+                }
+              />
+              <span className="toggle-slider"></span>
+            </label>
+            <span className="toggle-label">Annual</span>
           </div>
         </div>
 
@@ -101,9 +123,23 @@ const Plans = () => {
                         <div className="feature-item highlight">
                           <span className="feature-icon">💎</span>
                           <span className="feature-text">
-                            <strong>
-                              {plan.metadata?.base_credit} Monthly Credits
-                            </strong>
+                            {selectedDuration === "monthly" && <strong>
+                              {plan.metadata?.base_credits_monthly} Monthly Credits
+                            </strong>}
+                            {selectedDuration === "yearly" && <strong>
+                              {plan.metadata?.base_credits_yearly} Yearly Credits
+                            </strong>}
+                          </span>
+                        </div>
+                        <div className="feature-item highlight">
+                          <span className="feature-icon">💎</span>
+                          <span className="feature-text">
+                            {selectedDuration === "monthly" && <strong>
+                              {plan.metadata?.base_scans_monthly} Monthly Scans
+                            </strong>}
+                            {selectedDuration === "yearly" && <strong>
+                              {plan.metadata?.base_scans_yearly} Yearly Scans
+                            </strong>}
                           </span>
                         </div>
                       </div>
@@ -125,7 +161,7 @@ const Plans = () => {
                     </div>
 
                     <button
-                      onClick={() => handleSubscribe(price.price_id)}
+                      onClick={() => handleSubscribe(plan.metadata.type,price.price_id)}
                       className="subscribe-button"
                     >
                       Get Started with {plan.name}
@@ -137,72 +173,72 @@ const Plans = () => {
           ))}
         </div>
 
-        {/* Top Up Credits Section */}
-        {topUpPlans.length > 0 && (
-          <>
-            <div className="section-header top-up-header">
-              <h2>Top Up Credits</h2>
-              <p>Need more credits? Purchase additional credits here</p>
-            </div>
-            <div className="plans-grid">
-              {topUpPlans.map((plan) => (
-                <div key={plan.id} className="plan-card top-up-card">
-                  <div className="plan-card-header">
-                    <h2>{plan.name}</h2>
-                    <div className="plan-divider"></div>
+        {/* Scanning Top Up Section */}
+        <div className="section-header top-up-header">
+          <h2>Top Up Scanning</h2>
+          <p>Need more scans? Purchase additional scanning credits here</p>
+        </div>
+        <div className="plans-grid">
+          {topUpPlans
+            .filter((plan) => plan.metadata?.top_up_type === "type_2")
+            .map((plan) => (
+              <div key={plan.id} className="plan-card top-up-card">
+                {plan.prices?.map((price) => (
+                  <div key={price.price_id} className="price-content">
+                    {/* <div style={{display:"flex",justifyContent:"center"}}>
+                      <span style={{textAlign:"center"}}>{price.credits} Scans</span>
+                    
+                    </div> */}
+                    <div className="price-tag">
+                      <span className="currency">
+                        {price.currency.toUpperCase()}
+                      </span>
+                      <span className="amount">{price.amount}</span>
+                      <span className="price-label">One-time payment</span>
+                    </div>
+                    <button
+                      onClick={() => handleSubscribe(plan.metadata.type,price.price_id)}
+                      className="subscribe-button top-up-button"
+                      style={{ marginBottom: "10px" }}
+                    >
+                      Purchase {price.credits} Scans
+                    </button>
                   </div>
+                ))}
+              </div>
+            ))}
+        </div>
 
-                  <div className="plan-content">
-                    {plan.prices?.map((price) => (
-                      <div key={price.price_id} className="price-content">
-                        <div className="credit-amount">
-                          <span className="credit-value">💰{price.credits}</span>
-                          <span className="credit-label">Credits</span>
-                        </div>
-
-                        <div className="price-tag">
-                          <span className="currency">{price.currency}</span>
-                          <span className="amount">{price.amount}</span>
-                          <span className="price-label">One-time payment</span>
-                        </div>
-
-                        <div className="features-list">
-                          {/* Show cost per credit if relevant */}
-                        
-                          {/* Marketing Features */}
-                          {plan.marketing_features?.length > 0 && (
-                            <>
-                              <div className="feature-divider"></div>
-                              <div className="marketing-features">
-                                {plan.marketing_features.map(
-                                  (feature, index) => (
-                                    <div key={index} className="feature-item">
-                                      <span className="feature-icon">✓</span>
-                                      <span className="feature-text">
-                                        {feature}
-                                      </span>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            </>
-                          )}
-                        </div>
-
-                        <button
-                          onClick={() => handleSubscribe(price.price_id)}
-                          className="subscribe-button top-up-button"
-                        >
-                          Purchase {price.credits} Credits
-                        </button>
-                      </div>
-                    ))}
+        {/* Credits Top Up Section */}
+        <div className="section-header top-up-header">
+          <h2>Top Up Credits</h2>
+          <p>Need more credits? Purchase additional credits here</p>
+        </div>
+        <div className="plans-grid">
+          {topUpPlans
+            .filter((plan) => plan.metadata?.top_up_type === "type_1")
+            .map((plan) => (
+              <div key={plan.id} className="plan-card top-up-card">
+                {plan.prices?.map((price) => (
+                  <div key={price.price_id} className="price-content">
+                    <div className="price-tag">
+                      <span className="currency">
+                        {price.currency.toUpperCase()}
+                      </span>
+                      <span className="amount">{price.amount}</span>
+                      <span className="price-label">One-time payment</span>
+                    </div>
+                    <button
+                      onClick={() => handleSubscribe(plan.metadata.type,price.price_id)}
+                      className="subscribe-button top-up-button"
+                    >
+                      Purchase {price.credits} Credits
+                    </button>
                   </div>
-                </div>
-              ))}
-            </div>
-          </>
-        )}
+                ))}
+              </div>
+            ))}
+        </div>
       </div>
     </div>
   );

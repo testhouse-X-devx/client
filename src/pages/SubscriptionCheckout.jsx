@@ -3,36 +3,37 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const SubscriptionCheckout = () => {
-  const { priceId } = useParams();
+  const { planType, priceId } = useParams();
   const navigate = useNavigate();
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [countryCode, setCountryCode] = useState('US');
+  const [countryCode, setCountryCode] = useState('GB');
 
-  useEffect(() => {
-    const fetchCountry = async () => {
-      try {
-        const response = await axios.get('https://ipapi.co/json/');
-        setCountryCode(response.data.country_code);
-      } catch (err) {
-        console.error('Error detecting country:', err);
-      }
-    };
+  // useEffect(() => {
+  //   const fetchCountry = async () => {
+  //     try {
+  //       const response = await axios.get('https://ipapi.co/json/');
+  //       setCountryCode(response.data.country_code);
+  //     } catch (err) {
+  //       console.error('Error detecting country:', err);
+  //     }
+  //   };
 
-    fetchCountry();
-  }, []);
+  //   fetchCountry();
+  // }, []);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
-
+    console.log("planType",planType)
     try {
       const response = await axios.post('http://127.0.0.1:5000/api/create-checkout-session', {
         email,
         priceId,
-        countryCode
+        countryCode,
+        productType: planType
       });
 
       // Redirect to Stripe Checkout
