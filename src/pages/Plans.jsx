@@ -17,6 +17,54 @@ const Plans = () => {
     { value: "GB", label: "GBP" },
   ];
 
+  const renderPlanFeatures = (plan, selectedDuration) => (
+    <div className="features-list">
+      <div className="main-features">
+        {plan.type === 'trial' && (
+          <div className="feature-item highlight">
+            <span className="feature-icon">⏱️</span>
+            <span className="feature-text">
+              <strong>{plan.metadata?.expiration_in_days} Days Trial</strong>
+            </span>
+          </div>
+        )}
+        <div className="feature-item highlight">
+          <span className="feature-icon">👥</span>
+          <span className="feature-text">
+            <strong>{plan.metadata?.users} Team Members</strong>
+          </span>
+        </div>
+        <div className="feature-item highlight">
+          <span className="feature-icon">💎</span>
+          <span className="feature-text">
+            <strong>
+              {plan.type === 'trial' 
+                ? `${plan.metadata?.base_credits} Credits` 
+                : selectedDuration === "monthly"
+                ? `${plan.metadata?.base_credits_monthly} Monthly Credits`
+                : `${plan.metadata?.base_credits_yearly} Yearly Credits`
+              }
+            </strong>
+          </span>
+        </div>
+        <div className="feature-item highlight">
+          <span className="feature-icon">💎</span>
+          <span className="feature-text">
+            <strong>
+              {plan.type === 'trial'
+                ? `${plan.metadata?.base_scans} Scans`
+                : selectedDuration === "monthly"
+                ? `${plan.metadata?.base_scans_monthly} Monthly Scans`
+                : `${plan.metadata?.base_scans_yearly} Yearly Scans`
+              }
+            </strong>
+          </span>
+        </div>
+      </div>
+    </div>
+  );
+
+
   useEffect(() => {
     const fetchPlans = async () => {
       try {
@@ -37,11 +85,11 @@ const Plans = () => {
         setLoading(false);
       }
     };
-  
-    fetchPlans();
-  }, [selectedDuration, selectedCurrency]);  // Add selectedCurrency
 
-  const handleSubscribe = (planType,priceId) => {
+    fetchPlans();
+  }, [selectedDuration, selectedCurrency]); // Add selectedCurrency
+
+  const handleSubscribe = (planType, priceId) => {
     navigate(`/subscribe/${planType}/${priceId}`);
   };
 
@@ -99,6 +147,9 @@ const Plans = () => {
             <div key={plan.id} className="plan-card">
               <div className="plan-card-header">
                 <h2>{plan.name}</h2>
+                {/* {plan.type === "trial" && (
+                  <span className="trial-badge">Trial</span>
+                )} */}
                 <div className="plan-divider"></div>
               </div>
 
@@ -108,63 +159,24 @@ const Plans = () => {
                     <div className="price-tag">
                       <span className="currency">{price.currency}</span>
                       <span className="amount">{price.amount}</span>
-                      <span className="interval">per {price.interval}</span>
+                      <span className="interval">
+                        {plan.type === "trial"
+                          ? `Trial Period`
+                          : `per ${price.interval}`}
+                      </span>
                     </div>
 
-                    {/* Main Features */}
-                    <div className="features-list">
-                      <div className="main-features">
-                        <div className="feature-item highlight">
-                          <span className="feature-icon">👥</span>
-                          <span className="feature-text">
-                            <strong>{plan.metadata?.users} Team Members</strong>
-                          </span>
-                        </div>
-                        <div className="feature-item highlight">
-                          <span className="feature-icon">💎</span>
-                          <span className="feature-text">
-                            {selectedDuration === "monthly" && <strong>
-                              {plan.metadata?.base_credits_monthly} Monthly Credits
-                            </strong>}
-                            {selectedDuration === "yearly" && <strong>
-                              {plan.metadata?.base_credits_yearly} Yearly Credits
-                            </strong>}
-                          </span>
-                        </div>
-                        <div className="feature-item highlight">
-                          <span className="feature-icon">💎</span>
-                          <span className="feature-text">
-                            {selectedDuration === "monthly" && <strong>
-                              {plan.metadata?.base_scans_monthly} Monthly Scans
-                            </strong>}
-                            {selectedDuration === "yearly" && <strong>
-                              {plan.metadata?.base_scans_yearly} Yearly Scans
-                            </strong>}
-                          </span>
-                        </div>
-                      </div>
-
-                      {/* Marketing Features */}
-                      {/* {plan.marketing_features?.length > 0 && (
-                        <>
-                          <div className="feature-divider"></div>
-                          <div className="marketing-features">
-                            {plan.marketing_features.map((feature, index) => (
-                              <div key={index} className="feature-item">
-                                <span className="feature-icon">✓</span>
-                                <span className="feature-text">{feature}</span>
-                              </div>
-                            ))}
-                          </div>
-                        </>
-                      )} */}
-                    </div>
+                    {renderPlanFeatures(plan, selectedDuration)}
 
                     <button
-                      onClick={() => handleSubscribe(plan.metadata.type,price.price_id)}
+                      onClick={() =>
+                        handleSubscribe(plan.metadata.type, price.price_id)
+                      }
                       className="subscribe-button"
                     >
-                      Get Started with {plan.name}
+                      {plan.type === "trial"
+                        ? "Start Trial"
+                        : `Get Started with ${plan.name}`}
                     </button>
                   </div>
                 ))}
@@ -180,7 +192,7 @@ const Plans = () => {
         </div>
         <div className="plans-grid">
           {topUpPlans
-            .filter((plan) => plan.metadata?.top_up_type === "type_2")
+            .filter((plan) => plan.metadata?.top_up_type === "scan")
             .map((plan) => (
               <div key={plan.id} className="plan-card top-up-card">
                 {plan.prices?.map((price) => (
@@ -197,7 +209,9 @@ const Plans = () => {
                       <span className="price-label">One-time payment</span>
                     </div>
                     <button
-                      onClick={() => handleSubscribe(plan.metadata.type,price.price_id)}
+                      onClick={() =>
+                        handleSubscribe(plan.metadata.type, price.price_id)
+                      }
                       className="subscribe-button top-up-button"
                       style={{ marginBottom: "10px" }}
                     >
@@ -216,7 +230,7 @@ const Plans = () => {
         </div>
         <div className="plans-grid">
           {topUpPlans
-            .filter((plan) => plan.metadata?.top_up_type === "type_1")
+            .filter((plan) => plan.metadata?.top_up_type === "credit")
             .map((plan) => (
               <div key={plan.id} className="plan-card top-up-card">
                 {plan.prices?.map((price) => (
@@ -229,7 +243,9 @@ const Plans = () => {
                       <span className="price-label">One-time payment</span>
                     </div>
                     <button
-                      onClick={() => handleSubscribe(plan.metadata.type,price.price_id)}
+                      onClick={() =>
+                        handleSubscribe(plan.metadata.type, price.price_id)
+                      }
                       className="subscribe-button top-up-button"
                     >
                       Purchase {price.credits} Credits
