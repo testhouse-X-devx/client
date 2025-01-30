@@ -2,6 +2,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Plans from './pages/Plans';
 import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SubscriptionCheckout from './pages/SubscriptionCheckout';
+import Transactions from './pages/Transactions';
 import "./App.css";
 
 function App() {
@@ -13,6 +14,7 @@ function App() {
           <Route path="/subscribe/:planType/:priceId" element={<SubscriptionCheckout />} />
           <Route path="/success" element={<SubscriptionSuccess />} />
           <Route path="/cancel" element={<Plans />} />
+          <Route path="/transactions" element={<Transactions />} />
         </Routes>
       </div>
     </Router>
