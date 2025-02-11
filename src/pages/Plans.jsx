@@ -1,107 +1,209 @@
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-import axios from "axios";
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const Plans = () => {
-  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
-  const [topUpPlans, setTopUpPlans] = useState([]);
+  const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedDuration, setSelectedDuration] = useState("monthly");
+  const [selectedOptions, setSelectedOptions] = useState({});
+  const [selectedProducts, setSelectedProducts] = useState([]);
   const navigate = useNavigate();
-  const [selectedCurrency, setSelectedCurrency] = useState("US");
+  const [selectedCurrency, setSelectedCurrency] = useState('US');
 
-  // Currency dropdown
   const currencyOptions = [
-    { value: "US", label: "USD" },
-    { value: "GB", label: "GBP" },
+    { value: 'US', label: 'USD' },
+    { value: 'GB', label: 'GBP' },
   ];
 
-  const renderPlanFeatures = (plan, selectedDuration) => (
-    <div className="features-list">
-      <div className="main-features">
-        {plan.type === 'trial' && (
-          <div className="feature-item highlight">
-            <span className="feature-icon">⏱️</span>
-            <span className="feature-text">
-              <strong>{plan.metadata?.expiration_in_days} Days Trial</strong>
-            </span>
-          </div>
-        )}
-        <div className="feature-item highlight">
-          <span className="feature-icon">👥</span>
-          <span className="feature-text">
-            <strong>{plan.metadata?.users} Team Members</strong>
-          </span>
-        </div>
-        <div className="feature-item highlight">
-          <span className="feature-icon">💎</span>
-          <span className="feature-text">
-            <strong>
-              {plan.type === 'trial' 
-                ? `${plan.metadata?.base_credits} Credits` 
-                : selectedDuration === "monthly"
-                ? `${plan.metadata?.base_credits_monthly} Monthly Credits`
-                : `${plan.metadata?.base_credits_yearly} Yearly Credits`
-              }
-            </strong>
-          </span>
-        </div>
-        <div className="feature-item highlight">
-          <span className="feature-icon">💎</span>
-          <span className="feature-text">
-            <strong>
-              {plan.type === 'trial'
-                ? `${plan.metadata?.base_scans} Scans`
-                : selectedDuration === "monthly"
-                ? `${plan.metadata?.base_scans_monthly} Monthly Scans`
-                : `${plan.metadata?.base_scans_yearly} Yearly Scans`
-              }
-            </strong>
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-
-
   useEffect(() => {
-    const fetchPlans = async () => {
+    const fetchProducts = async () => {
       try {
-        const [subscriptionResponse, topUpResponse] = await Promise.all([
-          axios.get(
-            `http://127.0.0.1:5000/api/products?plan_duration=${selectedDuration}&type=subscription_plan&countryCode=${selectedCurrency}`
-          ),
-          axios.get(
-            `http://127.0.0.1:5000/api/products?type=top_up&countryCode=${selectedCurrency}`
-          ),
-        ]);
-        setSubscriptionPlans(subscriptionResponse.data.products || []);
-        setTopUpPlans(topUpResponse.data.products || []);
+        const response = await axios.get(
+          `http://127.0.0.1:5000/api/products?countryCode=${selectedCurrency}&include_trials=true`
+        );
+        const productsData = response.data.products || [];
+        
+        // Initialize selected options with the first option for each regular product
+        const initialSelectedOptions = {};
+        productsData.forEach(product => {
+          if (product.type !== 'trial' && product.credit_options?.length > 0) {
+            initialSelectedOptions[product.id] = product.credit_options[0].key;
+          }
+        });
+        setSelectedOptions(initialSelectedOptions);
+        setProducts(productsData);
         setLoading(false);
       } catch (err) {
-        console.error("Error fetching plans:", err);
+        console.error('Error fetching products:', err);
         setError(err.message);
         setLoading(false);
       }
     };
 
-    fetchPlans();
-  }, [selectedDuration, selectedCurrency]); // Add selectedCurrency
+    fetchProducts();
+  }, [selectedCurrency]);
 
-  const handleSubscribe = (planType, priceId) => {
-    navigate(`/subscribe/${planType}/${priceId}`);
+  const handleProductSelect = (product) => {
+    const isSelected = selectedProducts.some(p => p.id === product.id);
+    const hasTrial = selectedProducts.some(p => p.type === 'trial');
+    const hasRegular = selectedProducts.some(p => p.type !== 'trial');
+
+    // If trying to select a trial plan when regular plans are selected, or vice versa
+    if (!isSelected && ((product.type === 'trial' && hasRegular) || (product.type !== 'trial' && hasTrial))) {
+      alert('You cannot mix trial plans with regular plans. Please deselect your current selection first.');
+      return;
+    }
+
+    if (isSelected) {
+      setSelectedProducts(selectedProducts.filter(p => p.id !== product.id));
+    } else {
+      if (product.type === 'trial') {
+        setSelectedProducts([...selectedProducts, {
+          ...product,
+          selectedPrice: product.price,
+          type: 'trial'
+        }]);
+      } else {
+        const selectedOption = selectedOptions[product.id];
+        const selectedPrice = product.prices.find(price => price.option === selectedOption);
+        setSelectedProducts([...selectedProducts, {
+          ...product,
+          selectedPrice,
+          selectedCredits: product.credit_options.find(opt => opt.key === selectedOption).credits
+        }]);
+      }
+    }
   };
 
-  if (loading) return <div className="loading-spinner">Loading plans...</div>;
+  const handleCheckout = () => {
+    if (selectedProducts.length > 0) {
+      const items = selectedProducts.map(product => {
+        if (product.type === 'trial') {
+          return {
+            priceId: product.price.price_id,
+            credits: product.credits // This will contain both test_case and user_story
+          };
+        }
+        return {
+          priceId: product.selectedPrice.price_id,
+          credits: product.selectedCredits
+        };
+      });
+      navigate('/checkout', { state: { items } });
+    }
+  };
+
+  const getTotalAmount = () => {
+    return selectedProducts.reduce((total, product) => {
+      if (product.type === 'trial') {
+        return total + product.price.amount; // Should be 0 for trial
+      }
+      return total + product.selectedPrice.amount;
+    }, 0);
+  };
+
+  const renderPlanCard = (product) => {
+    const isSelected = selectedProducts.some(p => p.id === product.id);
+    const isTrial = product.type === 'trial';
+    const hasOtherSelections = selectedProducts.length > 0 && 
+      !selectedProducts.some(p => p.id === product.id);
+    const isDisabled = hasOtherSelections && 
+      ((isTrial && selectedProducts.some(p => p.type !== 'trial')) || 
+       (!isTrial && selectedProducts.some(p => p.type === 'trial')));
+
+    return (
+      <div 
+        key={product.id} 
+        className={`plan-card ${isSelected ? 'selected' : ''} ${isDisabled ? 'disabled' : ''}`}
+        onClick={() => !isDisabled && handleProductSelect(product)}
+      >
+        <div className="plan-card-header">
+          <h2>{product.name}</h2>
+          {isTrial && <span className="trial-badge">Trial</span>}
+          <div className="plan-divider"></div>
+        </div>
+
+        <div className="plan-content">
+          <div className="price-content">
+            {!isTrial ? (
+              <select
+                value={selectedOptions[product.id]}
+                onChange={(e) => {
+                  e.stopPropagation();
+                  setSelectedOptions({
+                    ...selectedOptions,
+                    [product.id]: e.target.value
+                  });
+                  if (isSelected) {
+                    setSelectedProducts(selectedProducts.map(p => {
+                      if (p.id === product.id) {
+                        const newPrice = product.prices.find(price => price.option === e.target.value);
+                        const newCredits = product.credit_options.find(opt => opt.key === e.target.value).credits;
+                        return {
+                          ...p,
+                          selectedPrice: newPrice,
+                          selectedCredits: newCredits
+                        };
+                      }
+                      return p;
+                    }));
+                  }
+                }}
+                className="credit-select"
+                disabled={isDisabled}
+              >
+                {product.credit_options.map((option) => (
+                  <option key={option.key} value={option.key}>
+                    {option.credits} Credits
+                  </option>
+                ))}
+              </select>
+            ) : (
+              <div className="trial-credits">
+                <div>Test Cases: {product.credits.test_case}</div>
+                <div>User Stories: {product.credits.user_story}</div>
+              </div>
+            )}
+
+            <div className="price-tag">
+              <span className="currency">{selectedCurrency === 'US' ? 'USD' : 'GBP'}</span>
+              <span className="amount">
+                {isTrial ? '0.00' : 
+                  product.prices.find(p => p.option === selectedOptions[product.id])?.amount.toFixed(2)}
+              </span>
+            </div>
+
+            <div className="features-list">
+              <div className="feature-item">
+                <span className="feature-icon">⏱️</span>
+                <span className="feature-text">
+                  <strong>{product.validity_in_days} Days Validity</strong>
+                </span>
+              </div>
+            </div>
+
+            <div className="selection-indicator">
+              {isDisabled ? 'Not Available' : (isSelected ? 'Selected' : 'Click to Select')}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
+  if (loading) return <div className="loading-spinner">Loading products...</div>;
   if (error) return <div className="error-message">Error: {error}</div>;
+
+  // Separate trial and regular products
+  const trialProducts = products.filter(product => product.type === 'trial');
+  const regularProducts = products.filter(product => product.type !== 'trial' && product.credit_options?.length > 0);
 
   return (
     <div className="plans-page">
       <div className="plans-container">
-        {/* Header Section */}
         <div className="plans-header">
-          <h1>Choose Your Plan</h1>
+          <h1>Choose Your Plans</h1>
           <div className="header-controls">
             <select
               value={selectedCurrency}
@@ -116,145 +218,54 @@ const Plans = () => {
             </select>
           </div>
           <p className="header-description">
-            Select the perfect plan for your needs
+            Select a trial plan or one or more regular plans
           </p>
+        </div>
 
-          <div className="billing-toggle">
-            <span className="toggle-label">Monthly</span>
-            <label className="toggle-switch">
-              <input
-                type="checkbox"
-                checked={selectedDuration === "yearly"}
-                onChange={() =>
-                  setSelectedDuration(
-                    selectedDuration === "monthly" ? "yearly" : "monthly"
-                  )
-                }
-              />
-              <span className="toggle-slider"></span>
-            </label>
-            <span className="toggle-label">Annual</span>
+        {trialProducts.length > 0 && (
+          <div className="trial-plans-section">
+            <h2>Trial Plans</h2>
+            <div className="plans-grid">
+              {trialProducts.map(renderPlanCard)}
+            </div>
+          </div>
+        )}
+
+        <div className="regular-plans-section">
+          <h2>Regular Plans</h2>
+          <div className="plans-grid">
+            {regularProducts.map(renderPlanCard)}
           </div>
         </div>
 
-        {/* Subscription Plans Section */}
-        <div className="section-header">
-          <h2>Subscription Plans</h2>
-          <p>Choose the subscription that works best for you</p>
-        </div>
-        <div className="plans-grid">
-          {subscriptionPlans.map((plan) => (
-            <div key={plan.id} className="plan-card">
-              <div className="plan-card-header">
-                <h2>{plan.name}</h2>
-                {/* {plan.type === "trial" && (
-                  <span className="trial-badge">Trial</span>
-                )} */}
-                <div className="plan-divider"></div>
-              </div>
-
-              <div className="plan-content">
-                {plan.prices?.map((price) => (
-                  <div key={price.price_id} className="price-content">
-                    <div className="price-tag">
-                      <span className="currency">{price.currency}</span>
-                      <span className="amount">{price.amount}</span>
-                      <span className="interval">
-                        {plan.type === "trial"
-                          ? `Trial Period`
-                          : `per ${price.interval}`}
-                      </span>
-                    </div>
-
-                    {renderPlanFeatures(plan, selectedDuration)}
-
-                    <button
-                      onClick={() =>
-                        handleSubscribe(plan.metadata.type, price.price_id)
-                      }
-                      className="subscribe-button"
-                    >
-                      {plan.type === "trial"
-                        ? "Start Trial"
-                        : `Get Started with ${plan.name}`}
-                    </button>
-                  </div>
-                ))}
-              </div>
+        {selectedProducts.length > 0 && (
+          <div className="checkout-summary">
+            <h2>Selected Plans</h2>
+            <div className="selected-plans-list">
+              {selectedProducts.map(product => (
+                <div key={product.id} className="selected-plan-item">
+                  <span>
+                    {product.name}
+                    {product.type === 'trial' ? 
+                      ` - ${product.credits.test_case} Test Cases, ${product.credits.user_story} User Stories` :
+                      ` - ${product.selectedCredits} Credits`}
+                  </span>
+                  <span>
+                    {selectedCurrency === 'US' ? 'USD' : 'GBP'} 
+                    {product.type === 'trial' ? '0.00' : product.selectedPrice.amount.toFixed(2)}
+                  </span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
-
-        {/* Scanning Top Up Section */}
-        <div className="section-header top-up-header">
-          <h2>Top Up Scanning</h2>
-          <p>Need more scans? Purchase additional scanning credits here</p>
-        </div>
-        <div className="plans-grid">
-          {topUpPlans
-            .filter((plan) => plan.metadata?.top_up_type === "scan")
-            .map((plan) => (
-              <div key={plan.id} className="plan-card top-up-card">
-                {plan.prices?.map((price) => (
-                  <div key={price.price_id} className="price-content">
-                    {/* <div style={{display:"flex",justifyContent:"center"}}>
-                      <span style={{textAlign:"center"}}>{price.credits} Scans</span>
-                    
-                    </div> */}
-                    <div className="price-tag">
-                      <span className="currency">
-                        {price.currency.toUpperCase()}
-                      </span>
-                      <span className="amount">{price.amount}</span>
-                      <span className="price-label">One-time payment</span>
-                    </div>
-                    <button
-                      onClick={() =>
-                        handleSubscribe(plan.metadata.type, price.price_id)
-                      }
-                      className="subscribe-button top-up-button"
-                      style={{ marginBottom: "10px" }}
-                    >
-                      Purchase {price.credits} Scans
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ))}
-        </div>
-
-        {/* Credits Top Up Section */}
-        <div className="section-header top-up-header">
-          <h2>Top Up Credits</h2>
-          <p>Need more credits? Purchase additional credits here</p>
-        </div>
-        <div className="plans-grid">
-          {topUpPlans
-            .filter((plan) => plan.metadata?.top_up_type === "credit")
-            .map((plan) => (
-              <div key={plan.id} className="plan-card top-up-card">
-                {plan.prices?.map((price) => (
-                  <div key={price.price_id} className="price-content">
-                    <div className="price-tag">
-                      <span className="currency">
-                        {price.currency.toUpperCase()}
-                      </span>
-                      <span className="amount">{price.amount}</span>
-                      <span className="price-label">One-time payment</span>
-                    </div>
-                    <button
-                      onClick={() =>
-                        handleSubscribe(plan.metadata.type, price.price_id)
-                      }
-                      className="subscribe-button top-up-button"
-                    >
-                      Purchase {price.credits} Credits
-                    </button>
-                  </div>
-                ))}
-              </div>
-            ))}
-        </div>
+            <div className="total-amount">
+              <span>Total:</span>
+              <span>{selectedCurrency === 'US' ? 'USD' : 'GBP'} {getTotalAmount().toFixed(2)}</span>
+            </div>
+            <button onClick={handleCheckout} className="checkout-button">
+              Proceed to Checkout
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );

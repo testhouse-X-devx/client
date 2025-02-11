@@ -4,6 +4,7 @@ import SubscriptionSuccess from './pages/SubscriptionSuccess';
 import SubscriptionCheckout from './pages/SubscriptionCheckout';
 import Transactions from './pages/Transactions';
 import "./App.css";
+import Checkout from './pages/Checkout';
 
 function App() {
   return (
@@ -11,6 +12,7 @@ function App() {
       <div className="App">
         <Routes>
           <Route path="/" element={<Plans />} />
+          <Route path="/checkout" element={<Checkout />} />
           <Route path="/subscribe/:planType/:priceId" element={<SubscriptionCheckout />} />
           <Route path="/success" element={<SubscriptionSuccess />} />
           <Route path="/cancel" element={<Plans />} />

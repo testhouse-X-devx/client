@@ -27,6 +27,34 @@
   color: #dc3545;
 }
 
+.credit-select {
+  width: 100%;
+  padding: 0.8rem 1rem;
+  margin: 1rem 0;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.credit-select:hover {
+  background: rgba(255, 255, 255, 0.15);
+}
+
+.credit-select:focus {
+  outline: none;
+  border-color: #4facfe;
+}
+
+.credit-select option {
+  background: #2d3436;
+  color: white;
+  padding: 0.5rem;
+}
+
 /* Plans Page */
 .plans-container {
   padding: 2rem;
@@ -1263,3 +1291,185 @@
   padding: 3rem;
   color: #666;
   font-size: 1}
+
+  .plan-card {
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+  }
+  
+  .plan-card.selected {
+    border: 2px solid #4facfe;
+    transform: translateY(-5px);
+    box-shadow: 0 20px 40px rgba(79, 172, 254, 0.3);
+  }
+  
+  .plan-card.selected::before {
+    content: '✓';
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: #4facfe;
+    color: white;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+  }
+  
+  .selection-indicator {
+    margin-top: 1rem;
+    text-align: center;
+    color: #a0aec0;
+    font-size: 0.9rem;
+  }
+  
+  .plan-card.selected .selection-indicator {
+    color: #4facfe;
+    font-weight: 600;
+  }
+  
+  .checkout-summary {
+    margin-top: 4rem;
+    padding: 2rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 20px;
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+  
+  .checkout-summary h2 {
+    color: white;
+    text-align: center;
+    margin-bottom: 2rem;
+    font-size: 1.8rem;
+  }
+  
+  .selected-plans-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-bottom: 2rem;
+  }
+  
+  .selected-plan-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    color: white;
+  }
+  
+  .total-amount {
+    display: flex;
+    justify-content: space-between;
+    padding: 1.5rem 1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    font-size: 1.2rem;
+    font-weight: 600;
+    margin-bottom: 2rem;
+  }
+  
+  .checkout-button {
+    background: linear-gradient(45deg, #4facfe 0%, #00f2fe 100%);
+    color: white;
+    border: none;
+    padding: 1rem 2rem;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 600;
+    cursor: pointer;
+    width: 100%;
+    transition: transform 0.2s ease;
+  }
+  
+  .checkout-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 20px rgba(79, 172, 254, 0.3);
+  }
+  
+  .credit-select {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+  
+  .plan-card .credit-select {
+    z-index: 2;
+    position: relative;
+  }
+
+  .selected-items-summary {
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 10px;
+    padding: 1.5rem;
+    margin: 2rem 0;
+  }
+  
+  .selected-items-summary h2 {
+    color: white;
+    font-size: 1.2rem;
+    margin-bottom: 1rem;
+  }
+  
+  .selected-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+  
+  .selected-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 0.8rem;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
+    color: #cbd5e0;
+  }
+  
+  .item-credits {
+    color: #4facfe;
+    font-weight: 600;
+  }
+  
+  .email-input {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+    border-radius: 8px;
+    padding: 1rem;
+    width: 100%;
+    font-size: 1rem;
+    transition: all 0.3s ease;
+  }
+  
+  .email-input:focus {
+    outline: none;
+    border-color: #4facfe;
+    box-shadow: 0 0 0 2px rgba(79, 172, 254, 0.2);
+  }
+  
+  .email-input::placeholder {
+    color: rgba(255, 255, 255, 0.5);
+  }
+  
+  .loading-text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+  }
+  
+  .loading-dots {
+    position: relative;
+  }
+  
+  .loading-dots:after {
+    content: '...';
+    animation: dots 1.5s steps(4, end) infinite;
+  }
