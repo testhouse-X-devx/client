@@ -10,8 +10,9 @@ const Checkout = () => {
   const [error, setError] = useState(null);
   const [countryCode, setCountryCode] = useState('GB');
 
-  // Get selected items from location state
+  // Get selected items and subscription status from location state
   const selectedItems = location.state?.items || [];
+  const isSubscription = location.state?.isSubscription || false;
 
   if (!selectedItems.length) {
     // Redirect back to plans if no items selected
@@ -28,6 +29,7 @@ const Checkout = () => {
       const response = await axios.post('http://127.0.0.1:5000/api/create-checkout-session', {
         email,
         countryCode,
+        isSubscription,
         items: selectedItems.map(item => ({
           priceId: item.priceId,
           credits: item.credits
@@ -68,6 +70,12 @@ const Checkout = () => {
           {/* Selected Items Summary */}
           <div className="selected-items-summary">
             <h2>Your Selection</h2>
+            {isSubscription && (
+              <div className="subscription-notice">
+                <span className="subscription-icon">🔄</span>
+                <span className="subscription-text">3-Month Auto-Renewal</span>
+              </div>
+            )}
             <div className="selected-items-list">
               {selectedItems.map((item, index) => (
                 <div key={index} className="selected-item">
@@ -76,6 +84,11 @@ const Checkout = () => {
                   )}
                   {renderItemCredits(item)}
                   {item.name && <div className="item-name">{item.name}</div>}
+                  {isSubscription && !item.type === 'trial' && (
+                    <div className="renewal-info">
+                      Renews every 3 months
+                    </div>
+                  )}
                 </div>
               ))}
             </div>

@@ -76,13 +76,15 @@ const Plans = () => {
     }
   };
 
+  const [isSubscription, setIsSubscription] = useState(false);
+
   const handleCheckout = () => {
     if (selectedProducts.length > 0) {
       const items = selectedProducts.map(product => {
         if (product.type === 'trial') {
           return {
             priceId: product.price.price_id,
-            credits: product.credits // This will contain both test_case and user_story
+            credits: product.credits
           };
         }
         return {
@@ -90,7 +92,12 @@ const Plans = () => {
           credits: product.selectedCredits
         };
       });
-      navigate('/checkout', { state: { items } });
+      navigate('/checkout', { 
+        state: { 
+          items,
+          isSubscription 
+        }
+      });
     }
   };
 
@@ -257,6 +264,24 @@ const Plans = () => {
                 </div>
               ))}
             </div>
+            
+            {/* Subscription Toggle */}
+            {!selectedProducts.some(p => p.type === 'trial') && (
+              <div className="subscription-toggle">
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={isSubscription}
+                    onChange={(e) => setIsSubscription(e.target.checked)}
+                  />
+                  <span className="slider round"></span>
+                </label>
+                <span className="toggle-label">
+                  {isSubscription ? '3-Month Auto-Renewal Enabled' : '3-Month Auto-Renewal Disabled'}
+                </span>
+              </div>
+            )}
+
             <div className="total-amount">
               <span>Total:</span>
               <span>{selectedCurrency === 'US' ? 'USD' : 'GBP'} {getTotalAmount().toFixed(2)}</span>

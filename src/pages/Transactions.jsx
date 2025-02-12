@@ -6,11 +6,13 @@ const Transactions = () => {
   const [summary, setSummary] = useState({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [userData, setUserData] = useState(null);
 
   // Filters
   const [selectedType, setSelectedType] = useState("");
   const [selectedSource, setSelectedSource] = useState("");
   const [selectedPrimary, setSelectedPrimary] = useState("");
+
 
   const filterOptions = {
     type: [
@@ -36,7 +38,7 @@ const Transactions = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        let url = `http://127.0.0.1:5000/api/transactions?user_id=3`;
+        let url = `http://127.0.0.1:5000/api/transactions?user_id=1`;
 
         if (selectedType) url += `&type=${selectedType}`;
         if (selectedSource) url += `&source=${selectedSource}`;
@@ -45,6 +47,7 @@ const Transactions = () => {
         const response = await axios.get(url);
         setTransactions(response.data.transactions);
         setSummary(response.data.summary);
+        setUserData(response.data.user);
         setLoading(false);
       } catch (err) {
         console.error("Error fetching transactions:", err);
@@ -88,10 +91,82 @@ const Transactions = () => {
   if (loading)
     return <div className="loading-spinner">Loading transactions...</div>;
   if (error) return <div className="error-message">Error: {error}</div>;
+  const UserInfoSection = ({ userData }) => {
+    if (!userData) return null;
+  
+    const formatDate = (dateString) => {
+      if (!dateString) return 'N/A';
+      return new Date(dateString).toLocaleDateString('en-US', {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric'
+      });
+    };
+  
+    return (
+      <div className="user-info-section">
+        <div className="user-info-header">
+          <h2>Account Information</h2>
+          <span className="user-email">{userData.email}</span>
+        </div>
+        
+        <div className="user-info-grid">
+          <div className="info-card">
+            <h3>Current Balance</h3>
+            <div className="info-stat-grid">
+              <div className="info-stat">
+                <span className="stat-label">Test Cases</span>
+                <span className="stat-value">{userData.current_test_case}</span>
+              </div>
+              <div className="info-stat">
+                <span className="stat-label">User Stories</span>
+                <span className="stat-value">{userData.current_user_story}</span>
+              </div>
+            </div>
+          </div>
+  
+          <div className="info-card">
+            <h3>Validity Status</h3>
+            <div className="subscription-info">
+              
+              {userData.validity_expiration && (
+                <div className="expiration-info">
+                  <span className="info-label">Valid Until:</span>
+                  <span className="info-value">{formatDate(userData.validity_expiration)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+  
+          <div className="info-card">
+            <h3>Trial Status</h3>
+            <div className="trial-info">
+              <div className="status-badge">
+                {!userData.has_used_trial ? (
+                  <span className="badge available">Available</span>
+                ) : userData.trial_end_date ? (
+                  <span className="badge active">Active</span>
+                ) : (
+                  <span className="badge used">Used</span>
+                )}
+              </div>
+              {userData.trial_end_date && (
+                <div className="expiration-info">
+                  <span className="info-label">Ends On:</span>
+                  <span className="info-value">{formatDate(userData.trial_end_date)}</span>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div className="transactions-page">
       <div className="transactions-container">
+      <UserInfoSection userData={userData} />
         {/* Header Section */}
         <div className="transactions-header">
           <h1>Transaction History</h1>
@@ -103,7 +178,7 @@ const Transactions = () => {
         {/* Summary Cards */}
         <div className="summary-grid">
           <div className="summary-card">
-            <h3>Credits Summary</h3>
+            <h3>User Story Summary</h3>
             <div className="summary-stats">
               <div className="stat-item">
                 <span className="stat-label">Received:</span>
@@ -126,7 +201,7 @@ const Transactions = () => {
             </div>
           </div>
           <div className="summary-card">
-            <h3>Scans Summary</h3>
+            <h3>Test Case Summary</h3>
             <div className="summary-stats">
               <div className="stat-item">
                 <span className="stat-label">Received:</span>
