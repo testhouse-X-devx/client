@@ -13,7 +13,6 @@ const Transactions = () => {
   const [selectedSource, setSelectedSource] = useState("");
   const [selectedPrimary, setSelectedPrimary] = useState("");
 
-
   const filterOptions = {
     type: [
       { value: "", label: "All Types" },
@@ -38,7 +37,7 @@ const Transactions = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        let url = `http://127.0.0.1:5000/api/transactions?user_id=1`;
+        let url = `http://127.0.0.1:5000/api/transactions?user_id=2`;
 
         if (selectedType) url += `&type=${selectedType}`;
         if (selectedSource) url += `&source=${selectedSource}`;
@@ -93,23 +92,45 @@ const Transactions = () => {
   if (error) return <div className="error-message">Error: {error}</div>;
   const UserInfoSection = ({ userData }) => {
     if (!userData) return null;
-  
+
     const formatDate = (dateString) => {
-      if (!dateString) return 'N/A';
-      return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
+      const date = new Date(dateString);
+      const istDate = new Date(date.getTime() + (5 * 60 + 30) * 60 * 1000);
+
+      // Format the IST date
+      return (
+        istDate.toLocaleString("en-IN", {
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }) + " IST"
+      );
+      if (!dateString) return "N/A";
+      return (
+        date.toLocaleString("en-IN", {
+          timeZone: "Asia/Kolkata",
+          year: "numeric",
+          month: "long",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          second: "2-digit",
+          hour12: true,
+        }) + " IST"
+      );
     };
-  
+
     return (
       <div className="user-info-section">
         <div className="user-info-header">
           <h2>Account Information</h2>
           <span className="user-email">{userData.email}</span>
         </div>
-        
+
         <div className="user-info-grid">
           <div className="info-card">
             <h3>Current Balance</h3>
@@ -120,24 +141,32 @@ const Transactions = () => {
               </div>
               <div className="info-stat">
                 <span className="stat-label">User Stories</span>
-                <span className="stat-value">{userData.current_user_story}</span>
+                <span className="stat-value">
+                  {userData.current_user_story}
+                </span>
               </div>
             </div>
           </div>
-  
+
           <div className="info-card">
             <h3>Validity Status</h3>
             <div className="subscription-info">
-              
               {userData.validity_expiration && (
                 <div className="expiration-info">
                   <span className="info-label">Valid Until:</span>
-                  <span className="info-value">{formatDate(userData.validity_expiration)}</span>
+                  <span className="info-value">
+                    {formatDate(userData.validity_expiration)}
+                  </span>
+                  
                 </div>
               )}
+              <span className="info-label">Is Blocked</span>
+                  <span className="info-value">
+                    {userData.is_blocked?"Yes":"No"}
+                  </span>
             </div>
           </div>
-  
+
           <div className="info-card">
             <h3>Trial Status</h3>
             <div className="trial-info">
@@ -153,7 +182,9 @@ const Transactions = () => {
               {userData.trial_end_date && (
                 <div className="expiration-info">
                   <span className="info-label">Ends On:</span>
-                  <span className="info-value">{formatDate(userData.trial_end_date)}</span>
+                  <span className="info-value">
+                    {formatDate(userData.trial_end_date)}
+                  </span>
                 </div>
               )}
             </div>
@@ -166,7 +197,7 @@ const Transactions = () => {
   return (
     <div className="transactions-page">
       <div className="transactions-container">
-      <UserInfoSection userData={userData} />
+        <UserInfoSection userData={userData} />
         {/* Header Section */}
         <div className="transactions-header">
           <h1>Transaction History</h1>
@@ -298,12 +329,16 @@ const Transactions = () => {
                       </span>
                     </td>
                     <td>
-                      <span className={`transaction-type ${transaction.transaction_type}`}>
+                      <span
+                        className={`transaction-type ${transaction.transaction_type}`}
+                      >
                         {formatSourceType(transaction.source_type)}
                       </span>
                     </td>{" "}
                     {/* Was empty before */}
-                    <td className={`transaction-type ${transaction.transaction_type}`}>
+                    <td
+                      className={`transaction-type ${transaction.transaction_type}`}
+                    >
                       {transaction.primary_type === "credit"
                         ? "Credits"
                         : "Scans"}{" "}
@@ -314,7 +349,7 @@ const Transactions = () => {
                     >
                       {transaction.value}
                     </td>
-                    <td className="description-cell" style={{color:"black"}}>
+                    <td className="description-cell" style={{ color: "black" }}>
                       {transaction.description}
                     </td>
                     <td className="id-cell">
