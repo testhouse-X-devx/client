@@ -8,7 +8,7 @@ const Checkout = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const [countryCode, setCountryCode] = useState('GB');
+  const [countryCode, setCountryCode] = useState('US');
 
   // Get selected items and subscription status from location state
   const selectedItems = location.state?.items || [];

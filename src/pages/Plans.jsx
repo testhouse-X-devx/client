@@ -9,7 +9,7 @@ const Plans = () => {
   const [selectedOptions, setSelectedOptions] = useState({});
   const [selectedProducts, setSelectedProducts] = useState([]);
   const navigate = useNavigate();
-  const [selectedCurrency, setSelectedCurrency] = useState('US');
+  const [selectedCurrency, setSelectedCurrency] = useState('GB');
 
   const currencyOptions = [
     { value: 'US', label: 'USD' },
