@@ -37,7 +37,7 @@ const Transactions = () => {
   useEffect(() => {
     const fetchTransactions = async () => {
       try {
-        let url = `http://127.0.0.1:5000/api/transactions?user_id=2`;
+        let url = `http://127.0.0.1:5000/api/transactions?user_id=3`;
 
         if (selectedType) url += `&type=${selectedType}`;
         if (selectedSource) url += `&source=${selectedSource}`;

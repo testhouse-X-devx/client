@@ -83,11 +83,13 @@ const Plans = () => {
       const items = selectedProducts.map(product => {
         if (product.type === 'trial') {
           return {
+            ...product,
             priceId: product.price.price_id,
             credits: product.credits
           };
         }
         return {
+          ...product,
           priceId: product.selectedPrice.price_id,
           credits: product.selectedCredits
         };

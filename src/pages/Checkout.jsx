@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 
 const Checkout = () => {
   const location = useLocation();
@@ -13,7 +12,7 @@ const Checkout = () => {
   // Get selected items and subscription status from location state
   const selectedItems = location.state?.items || [];
   const isSubscription = location.state?.isSubscription || false;
-
+  console.log("selectedItems in checkout>>",selectedItems)
   if (!selectedItems.length) {
     // Redirect back to plans if no items selected
     navigate('/');
@@ -25,23 +24,20 @@ const Checkout = () => {
     setLoading(true);
     setError(null);
 
-    try {
-      const response = await axios.post('http://127.0.0.1:5000/api/create-checkout-session', {
+    // Instead of making API call here, navigate to custom checkout
+    // with email and items information
+    navigate('/custom-checkout', {
+      state: {
         email,
         countryCode,
         isSubscription,
         items: selectedItems.map(item => ({
           priceId: item.priceId,
-          credits: item.credits
+          credits: item.credits,
+          ...item
         }))
-      });
-
-      // Redirect to Stripe Checkout
-      window.location.href = response.data.url;
-    } catch (err) {
-      setError(err.response?.data?.error || 'Something went wrong');
-      setLoading(false);
-    }
+      }
+    });
   };
 
   const renderItemCredits = (item) => {
