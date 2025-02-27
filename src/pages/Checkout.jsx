@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
@@ -20,6 +20,9 @@ const Checkout = () => {
     return null;
   }
 
+  useEffect(()=>{
+    setCountryCode(localStorage.getItem('selectedCurrency'))
+  },[])
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);

@@ -34,6 +34,7 @@ const Plans = () => {
         setSelectedOptions(initialSelectedOptions);
         setProducts(productsData);
         setLoading(false);
+        localStorage.setItem('selectedCurrency', selectedCurrency);
       } catch (err) {
         console.error('Error fetching products:', err);
         setError(err.message);

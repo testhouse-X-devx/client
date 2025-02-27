@@ -358,14 +358,14 @@ const Transactions = () => {
                           className="subscription-id"
                           title={transaction.subscription_id}
                         >
-                          {transaction.subscription_id.slice(-8)}
+                          {transaction.subscription_id}
                         </span>
                       ) : transaction.payment_id ? (
                         <span
                           className="payment-id"
                           title={transaction.payment_id}
                         >
-                          {transaction.payment_id.slice(-8)}
+                          {transaction.payment_id}
                         </span>
                       ) : (
                         "-"
