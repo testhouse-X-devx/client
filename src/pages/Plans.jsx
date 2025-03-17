@@ -102,6 +102,71 @@ const Plans = () => {
     }
   };
 
+  const handlePO = async () => {
+    // Check if plans are selected
+    if (selectedProducts.length === 0) {
+      alert('Please select at least one plan.');
+      return;
+    }
+    
+    // Check if it's a trial plan
+    if (selectedProducts.some(p => p.type === 'trial')) {
+      alert('Trial plans cannot be purchased with a Purchase Order. Please select regular plans only.');
+      return;
+    }
+    
+    // Open dialog to collect company details
+    const companyName = prompt('Please enter your company name:');
+    if (!companyName) {
+      // User cancelled
+      return;
+    }
+    
+    const poNumber = prompt('Please enter your PO number (optional):');
+    
+    // Prepare items in the format expected by the API
+    const items = selectedProducts.map(product => ({
+      priceId: product.selectedPrice.price_id,
+      credits: product.selectedCredits
+    }));
+    
+    try {
+      setLoading(true);
+      
+      // Get user email - for demo purposes, use a fixed email or get from a form
+      const userEmail = 'krishna+testingPO2@devxconsultancy.com';
+      
+      // Call the API
+      const response = await axios.post('http://127.0.0.1:5000/api/create-purchase-order', {
+        email: userEmail,
+        items,
+        isSubscription,
+        countryCode: selectedCurrency,
+        companyName,
+        poNumber
+      });
+      
+      // Success! Show invoice details
+      setLoading(false);
+      
+      // Show success message with link to invoice
+      const invoice = response.data.invoice;
+      alert(`Purchase Order created successfully!\n\nInvoice #${invoice.number} has been sent to ${userEmail}.\n\nYou can view your invoice online or download the PDF.`);
+      
+      // Optionally open the invoice URL in a new tab
+      if (confirm('Would you like to view the invoice now?')) {
+        window.open(invoice.hosted_invoice_url, '_blank');
+      }
+      
+    } catch (error) {
+      setLoading(false);
+      console.error('Error creating purchase order:', error);
+      
+      // Show error message
+      const errorMsg = error.response?.data?.error || 'Failed to create purchase order. Please try again.';
+      alert(errorMsg);
+    }
+  };
   const getTotalAmount = () => {
     return selectedProducts.reduce((total, product) => {
       if (product.type === 'trial') {
@@ -289,6 +354,9 @@ const Plans = () => {
             </div>
             <button onClick={handleCheckout} className="checkout-button">
               Proceed to Checkout
+            </button>
+            <button onClick={handlePO} className="checkout-button">
+              Generate a PO.
             </button>
           </div>
         )}
